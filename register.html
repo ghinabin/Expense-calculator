@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-app="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Create account · Expense Calculator</title>
+<meta name="description" content="Track where your money goes: accounts, expenses with bills and slips, EMIs and budgets.">
+<meta name="theme-color" content="#f5f6fa">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/auth.css">
+<script>try{var t=localStorage.getItem('xt-theme')||'light';if(t==='system')delete document.documentElement.dataset.app;else document.documentElement.dataset.app=t}catch(e){}</script>
+</head>
+<body class="auth" data-page="register">
+<div class="au">
+  <header class="au-band"><div class="au-in">
+    <div class="brand"><span class="logo"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M16 13.5h2"/></svg></span><b>Expense Calculator</b></div>
+    <h1>Create your account</h1>
+    <p>Set up in a minute. Add your banks and wallets right after.</p>
+    <ul class="perks"><li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg> Every rupee, every account</li><li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg> EMIs and bills planned ahead</li><li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg> Bills and slips kept with each payment</li></ul>
+  </div></header>
+  <main class="au-in">
+    <form class="au-card" id="form" novalidate>
+      <label class="l" for="name">Full name</label>
+      <input class="in" id="name" type="text" autocomplete="name" placeholder="e.g. Sita Sharma" required>
+      <label class="l" for="email">Email</label>
+      <input class="in" id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
+      <label class="l" for="password">Password</label>
+      <div class="pw"><input class="in" id="password" type="password" autocomplete="new-password" placeholder="Create a password" required aria-describedby="pwhint"><button type="button" data-toggle="password" aria-pressed="false" aria-label="Show password">Show</button></div>
+      <p class="hint" id="pwhint">At least 8 characters, with a letter and a number.</p>
+      <label class="l" for="confirm">Confirm password</label>
+      <div class="pw"><input class="in" id="confirm" type="password" autocomplete="new-password" placeholder="Type it again" required><button type="button" data-toggle="confirm" aria-pressed="false" aria-label="Show password">Show</button></div>
+      <p class="err" id="err" role="alert" hidden></p>
+      <button class="btn" id="submit" type="submit">Create account</button>
+    </form>
+    <p class="alt">Already have an account? <a href="login.html">Log in</a></p>
+  </main>
+  <p class="foot-note">Your data stays on this device.</p>
+</div>
+<script src="js/auth.js"></script>
+</body>
+</html>
