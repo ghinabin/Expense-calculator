@@ -1,6 +1,6 @@
 /* Expense Calculator: app logic (balances, transactions, EMIs, budget, reports) */
-if(!(window.Auth&&Auth.current())){location.replace('login.html')}else{
-const U=Auth.current();const DKEY='xt-data-'+U.email;
+{
+let U={email:'',name:'',demo:false};
 const T=new Date();
 const pad=n=>String(n).padStart(2,'0');
 const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -44,10 +44,9 @@ function seed(){
   for(const c of S.com){c.paid.push(dueIn(c,P1));if(['c_rent','c_bike'].includes(c.id))c.paid.push(dueIn(c,P0))}
 }
 function applyTheme(){const t=(S.set&&S.set.theme)||'light';const r=document.documentElement;if(t==='system')delete r.dataset.app;else r.dataset.app=t;const m=document.querySelector('meta[name=theme-color]');if(m)m.content=getComputedStyle(document.body).backgroundColor;try{localStorage.setItem('xt-theme',t)}catch(e){}}
-function save(){try{localStorage.setItem(DKEY,JSON.stringify(S))}catch(e){}}
+function save(){Store.save(S)}
 function blank(){S={set:{start:1,def:'cash',theme:(S&&S.set&&S.set.theme)||'light'},acc:[{id:'cash',name:'Cash',type:'cash',open:0}],tx:[],com:[],bud:{all:30000,cat:{}}}}
-function fresh(){if(U.demo)seed();else blank()}
-function load(){try{const v=JSON.parse(localStorage.getItem(DKEY)||'null');if(v&&v.acc){S=v;return}}catch(e){}fresh()}
+function fresh(){if(U.demo&&Store.mode==='local')seed();else blank()}
 
 const accOf=id=>S.acc.find(a=>a.id===id)||{name:'Account',type:'bank'};
 const catOf=id=>CATS.find(c=>c.id===id)||SRCS.find(c=>c.id===id)||{n:'Other',s:'Other',i:'dots',c:'#64748b'};
@@ -71,7 +70,7 @@ const V={};
 V.home=()=>{const p=period(0),s=stats(p),m=money();const used=s.exp/S.bud.all;const up=S.com.map(c=>({c,st:cstat(c,p),d:dueIn(c,p)})).filter(x=>['overdue','today','upcoming'].includes(x.st)).sort((x,y)=>x.d.localeCompare(y.d)).slice(0,3);const h=T.getHours();
 return`<header class="top"><div><p class="mut">${h<12?'Good morning':h<17?'Good afternoon':'Good evening'}${U.name?', '+esc(U.name.split(' ')[0]):''} · ${p.label}</p><h1>Overview</h1></div><button class="icb" data-a="settings" aria-label="Settings">${ic('gear')}</button></header>
 <section class="hero"><p class="mut">Total balance</p><p class="big">${sfmt(m.avail)}</p><div class="split"><div><p class="mut">Free to spend</p><p>${sfmt(m.free)}</p></div><div><p class="mut">Still to pay this month</p><p>${fmt(m.left)}</p></div><div><p class="mut">In</p><p>+${fmt(s.inc)}</p></div><div><p class="mut">Out</p><p>−${fmt(s.exp)}</p></div></div></section>
-<button class="card" data-a="tab" data-v="plan" style="width:100%;text-align:left;display:block"><div class="kv"><span><b style="font-size:15px">Monthly budget</b></span><b class="${used>1?'warn':''}">${fmt(s.exp)} <span class="mut" style="display:inline">of ${fmt(S.bud.all)}</span></b></div><div class="bar${used>1?' over':used>=.8?' near':''}"><i style="width:${Math.min(100,used*100)}%"></i></div><p class="mut" style="margin-top:8px">${used>=1?`Over budget by ${fmt(s.exp-S.bud.all)}`:used>=.8?`<span class="near-t">${Math.round(used*100)}% used, slow down</span>`:`${fmt(S.bud.all-s.exp)} left for ${p.label}`}</p></button>
+${S.tx.length?'':`<div class="card"><b style="font-size:16px">Let’s set up your money</b><p class="mut" style="margin-top:4px">1. Add your banks and wallets with today’s balance. 2. Set your Cash balance. 3. Add EMIs and bills in Plan. Then record each expense with +.</p><div class="row2"><button class="btn" data-a="addAcc">${ic('plus',18)} Add account</button><button class="btn gh" data-a="acc" data-v="${S.acc[0]?S.acc[0].id:''}">Set cash</button></div></div>`}<button class="card" data-a="tab" data-v="plan" style="width:100%;text-align:left;display:block"><div class="kv"><span><b style="font-size:15px">Monthly budget</b></span><b class="${used>1?'warn':''}">${fmt(s.exp)} <span class="mut" style="display:inline">of ${fmt(S.bud.all)}</span></b></div><div class="bar${used>1?' over':used>=.8?' near':''}"><i style="width:${Math.min(100,used*100)}%"></i></div><p class="mut" style="margin-top:8px">${used>=1?`Over budget by ${fmt(s.exp-S.bud.all)}`:used>=.8?`<span class="near-t">${Math.round(used*100)}% used, slow down</span>`:`${fmt(S.bud.all-s.exp)} left for ${p.label}`}</p></button>
 <div class="hd"><h2>Coming up</h2><button class="lk" data-a="tab" data-v="plan">Plan</button></div>
 <div class="card" style="padding:4px 16px">${up.length?up.map(x=>comRow(x.c,p,true)).join(''):(S.com.length?'<p class="empty">All dues paid this month.</p>':'<p class="empty">No EMIs or bills yet. Add them in Plan.</p>')}</div>
 <div class="hd"><h2>Recent</h2><button class="lk" data-a="tab" data-v="activity">See all</button></div>
@@ -239,7 +238,7 @@ function saveBud(){const old=JSON.parse(JSON.stringify(S.bud));top().querySelect
 function openSettings(){sheet(`${head('Settings')}<div class="shb"><span class="l">Account</span><div class="card" style="margin-top:0;display:flex;align-items:center;gap:12px"><span class="ico dk">${ic('user')}</span><span style="flex:1;min-width:0"><span class="t1">${esc(U.name||'Your account')}</span><span class="t2">${esc(U.email)}</span></span><button class="pay" data-a="logout" style="background:var(--soft);color:var(--ink)">Log out</button></div><span class="l">Appearance</span><div class="seg" id="thm">${[['light','Light'],['dark','Dark'],['system','System']].map(t=>`<button class="${S.set.theme===t[0]?'on':''}" data-a="theme" data-v="${t[0]}">${t[1]}</button>`).join('')}</div><p class="mut" style="font-size:13px;margin-top:6px">System follows your phone's light or dark setting.</p><span class="l">Month starts on</span><select class="in" id="ms">${Array.from({length:28},(_,i)=>`<option value="${i+1}" ${S.set.start===i+1?'selected':''}>${i===0?'1st (calendar month)':`Day ${i+1}${i+1===25?' (e.g. payday)':''}`}</option>`).join('')}</select><p class="mut" style="font-size:13px;margin-top:6px">Set it to your payday so "this month" matches your salary cycle. Nothing is lost when you change it.</p>
 <span class="l">Default account for new expenses</span><div class="chips">${S.acc.filter(a=>!a.archived).map(a=>`<button class="chip${S.set.def===a.id?' on':''}" data-a="def" data-v="${a.id}">${esc(a.name)}</button>`).join('')}</div>
 <span class="l">Currency</span><div class="card" style="margin-top:0"><div class="kv"><span>Nepalese rupee</span><b>Rs</b></div></div>
-<span class="l">Your data</span><div class="card" style="margin-top:0"><p style="margin:0;font-size:14px">Your money data is stored on this phone only, under your login. No cloud.</p></div>
+<span class="l">Your data</span><div class="card" style="margin-top:0"><p style="margin:0;font-size:14px">${Store.mode==='cloud'?'Saved to your account in the cloud. Log in on any phone to see it.':'Local mode: stored in this browser only.'}</p><p class="mut" id="syncst" style="margin-top:6px;font-size:13px">${esc(Store.statusText())}</p></div>
 <button class="btn gh" data-a="export">${ic('copy',18)} Export transactions (CSV)</button><button class="btn gh" data-a="budget">Edit budget</button><button class="btn wr" data-a="reset">${U.demo?'Reset demo data':'Clear all my data'}</button></div>`);top().querySelector('#ms').onchange=e=>{S.set.start=+e.target.value;roff=0;save();render();toast(`Month now starts on day ${S.set.start}`)}}
 function openExport(){const rows=[['Date','Type','Amount','Account','To','Category','Person','Note','Attachments']].concat(sorted().map(t=>[t.date,t.type,t.amt,accOf(t.acc).name,t.to?accOf(t.to).name:'',t.cat?catOf(t.cat).n:'',t.person||'',t.note||'',(t.att||[]).length]));const csv=rows.map(r=>r.map(v=>/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v).join(',')).join('\n');
   sheet(`${head('Export')}<div class="shb"><p class="mut" style="font-size:14px">In the app this saves a backup file you can send to Google Drive, iCloud or email. Here you can copy the CSV.</p><textarea class="in" id="csv" rows="12" readonly style="margin-top:12px">${esc(csv)}</textarea><button class="btn" data-a="copy">${ic('copy',18)} Copy CSV</button></div>`)}
@@ -270,10 +269,13 @@ const ACT={
  arch:v=>{const a=S.acc.find(x=>x.id===v);if(S.acc.filter(x=>!x.archived).length<2)return toast('Keep at least one account');a.archived=true;if(S.set.def===v)S.set.def=S.acc.find(x=>!x.archived).id;save();closeSheet();render(1);toast(`${a.name} archived`,()=>{a.archived=false})},
  copy:()=>{const t=top().querySelector('#csv');navigator.clipboard.writeText(t.value).then(()=>toast('CSV copied')).catch(()=>{t.select();toast('Select all and copy')})},
  reset:(v,el)=>{if(el.dataset.sure!=='1'){el.dataset.sure='1';el.textContent='Tap again to reset everything';return}fresh();save();applyTheme();while(sheets.length)closeSheet();tab='home';flt='all';q='';roff=0;render();toast(U.demo?'Demo data restored':'All data cleared')},
- logout:()=>{Auth.logout();location.replace('login.html')}
+ logout:()=>{Store.signOut().then(()=>location.replace('login.html'))}
 };
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled)return;const f=ACT[el.dataset.a];if(f){e.preventDefault();f(el.dataset.v,el,e)}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheets.length)closeSheet()});
 
-load();if(!S.set.theme)S.set.theme='light';applyTheme();render();
+const showMsg=m=>{view.innerHTML=`<div class="empty" style="padding-top:28vh">${m}</div>`};
+Store.onStatus(t=>{const el=document.getElementById('syncst');if(el)el.textContent=t;if(/^Couldn/.test(t))toast(t)});
+showMsg('Loading your money…');
+Store.boot().then(r=>{if(!r){location.replace('login.html');return}U=r.user;S=r.state;if(!S){fresh();save()}if(!S.set.theme)S.set.theme='light';applyTheme();render()}).catch(e=>{console.error(e);showMsg(`Couldn’t load your data. ${esc(e&&e.message||'')}<br><br><button class="btn" onclick="location.reload()">Try again</button>`)});
 }

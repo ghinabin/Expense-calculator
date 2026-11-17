@@ -1,7 +1,6 @@
-/* Expense Calculator: accounts, login and registration.
-   This is client-side only: users and sessions live in this browser's storage,
-   and passwords are kept as SHA-256 hashes, never as plain text.
-   Swap these functions for real API calls when a backend is added. */
+/* Expense Calculator: local accounts, used only in local mode
+   (when js/config.js has no Supabase keys). Users and sessions live in this
+   browser's storage, and passwords are kept as SHA-256 hashes, never as plain text. */
 (function () {
   'use strict';
 
@@ -96,67 +95,6 @@
     current: function () { return read(sessionStorage, SESSION) || read(localStorage, SESSION); },
     logout: function () { try { localStorage.removeItem(SESSION); sessionStorage.removeItem(SESSION); } catch (e) {} }
   };
-  window.Auth = Auth;
+  window.LocalAuth = Auth;
 
-  // ---- Page wiring for login.html and register.html ----
-  function $(id) { return document.getElementById(id); }
-  function showError(msg) { var el = $('err'); el.textContent = msg; el.hidden = !msg; }
-  function busy(btn, on, label) { btn.disabled = on; btn.textContent = on ? 'Please wait…' : label; }
-  function bindToggles() {
-    document.querySelectorAll('[data-toggle]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var input = $(b.dataset.toggle), show = input.type === 'password';
-        input.type = show ? 'text' : 'password';
-        b.textContent = show ? 'Hide' : 'Show';
-        b.setAttribute('aria-pressed', String(show));
-      });
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var page = document.body.dataset.page;
-    if (!page) return;
-    if (Auth.current()) { location.replace('index.html'); return; }
-    bindToggles();
-
-    if (page === 'login') {
-      var f = $('form'), btn = $('submit');
-      f.addEventListener('submit', function (ev) {
-        ev.preventDefault(); showError('');
-        var email = $('email').value, pw = $('password').value;
-        if (!Auth.validEmail(email)) return showError('Enter a valid email address.');
-        if (!pw) return showError('Enter your password.');
-        busy(btn, true, 'Log in');
-        setTimeout(function () {
-          var s = Auth.login(email, pw, $('remember').checked);
-          if (!s) { busy(btn, false, 'Log in'); showError('Email or password is incorrect.'); $('password').select(); return; }
-          location.replace('index.html');
-        }, 350);
-      });
-    }
-
-    if (page === 'register') {
-      var rf = $('form'), rbtn = $('submit'), pw = $('password'), hint = $('pwhint');
-      pw.addEventListener('input', function () {
-        var issues = Auth.passwordIssues(pw.value);
-        hint.textContent = pw.value ? (issues.length ? 'Needs ' + issues.join(', ') + '.' : 'Strong enough.') : 'At least 8 characters, with a letter and a number.';
-        hint.classList.toggle('ok', !!pw.value && !issues.length);
-      });
-      rf.addEventListener('submit', function (ev) {
-        ev.preventDefault(); showError('');
-        var name = $('name').value.trim(), email = $('email').value, p1 = pw.value, p2 = $('confirm').value;
-        if (name.length < 2) return showError('Enter your name.');
-        if (!Auth.validEmail(email)) return showError('Enter a valid email address.');
-        var issues = Auth.passwordIssues(p1);
-        if (issues.length) return showError('Password needs ' + issues.join(', ') + '.');
-        if (p1 !== p2) return showError('Passwords do not match.');
-        busy(rbtn, true, 'Create account');
-        setTimeout(function () {
-          var r = Auth.register(name, email, p1);
-          if (r.error) { busy(rbtn, false, 'Create account'); return showError(r.error); }
-          location.replace('index.html');
-        }, 350);
-      });
-    }
-  });
 })();

@@ -31,14 +31,19 @@
       <input class="in" id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
       <label class="l" for="password">Password</label>
       <div class="pw"><input class="in" id="password" type="password" autocomplete="current-password" placeholder="Your password" required><button type="button" data-toggle="password" aria-pressed="false" aria-label="Show password">Show</button></div>
-      <label class="check"><input type="checkbox" id="remember" checked> Keep me logged in on this phone</label>
+      <div class="row-between"><label class="check"><input type="checkbox" id="remember" checked> Keep me logged in</label><button type="button" class="linkbtn" id="forgot" hidden>Forgot password?</button></div>
       <p class="err" id="err" role="alert" hidden></p>
+      <p class="ok" id="ok" role="status" hidden></p>
       <button class="btn" id="submit" type="submit">Log in</button>
     </form>
     <p class="alt">New here? <a href="register.html">Create an account</a></p>
   </main>
-  <p class="foot-note">Your data stays on this device.</p>
+  <p class="foot-note" id="mode"></p>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/store.js"></script>
+<script src="js/auth-pages.js"></script>
 </body>
 </html>

@@ -18,9 +18,12 @@ body.auth{overflow:auto;min-height:100%;background:var(--app)}
 .check{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px;min-height:44px}
 .check input{width:20px;height:20px;accent-color:var(--pri)}
 .hint{font-size:13px;color:var(--mut);margin:6px 2px 0}
-.hint.ok{color:var(--pos)}
+.hint.good{color:var(--pos)}
 .err{background:color-mix(in srgb,var(--neg) 10%,var(--card));color:var(--neg);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600;margin:14px 0 0}
 .btn:disabled{opacity:.7}
 .alt{text-align:center;margin:22px 0 8px;font-size:15px;color:var(--mut)}
 .alt a,.foot-note a{color:var(--pri);font-weight:650;text-underline-offset:3px}
 .foot-note{text-align:center;font-size:13px;color:var(--mut);margin:auto 0 0;padding:20px 24px calc(20px + env(safe-area-inset-bottom))}
+.ok{background:color-mix(in srgb,var(--pos) 10%,var(--card));color:var(--pos);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600;margin:14px 0 0}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.linkbtn{background:none;border:0;color:var(--pri);font-weight:650;font-size:14px;min-height:44px;padding:0 2px}
