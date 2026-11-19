@@ -14,7 +14,8 @@ Plain HTML, CSS and JavaScript, no build step. **Supabase** provides sign-in, th
   - Savings goals: target and date, a suggested monthly step, a savings account to keep it in. Nothing is logged automatically: you move the money, then tap "I moved it".
 - **Recurring income:** salary and rent received, with "Got it", "Other amount" or "Not yet". Income only counts once you confirm it arrived.
 - **Nepali (BS) and English (AD) calendars**, chosen per user and per plan.
-- **Accounts:** banks, wallets (eSewa, Khalti), cash, credit cards and savings accounts. Save receive-money details and a QR code, and share them in one tap.
+- **Accounts:** add any bank, wallet, cash or credit card, as many as you like. Names are free text, with tap-to-fill suggestions (Nepali banks and wallets first, then NZ and US ones as you type). Savings accounts are kept out of Left to spend.
+- **Payment QR:** take a photo of your QR or choose a screenshot. The app finds the code (even in an angled photo), crops a clean copy for sharing, and fills in the name, account or wallet ID and bank. It reads NepalQR/Fonepay/NepalPay (EMVCo), wallet QRs in JSON, payment links (Venmo, PayPal, Zelle, Cash App), phone numbers and NZ account numbers. Filled fields are marked "From QR" so you can check them. Uses the browser's built-in reader where available, otherwise jsQR (`js/vendor`, loaded only when needed).
 - **Add money in or out:** expense, income, transfer, lend/borrow, with a keypad, categories, bills and payment slips (camera, gallery or PDF).
 - **Activity:** search and filters (date range, account, category, tag, with slip), with a filtered total.
 - **Reports:** spending by category, budget, comparison with last month, income by source.
@@ -33,6 +34,7 @@ Expense-calculator/
 ├── js/
 │   ├── config.js         # Supabase URL and anon key (public by design; data is protected by RLS)
 │   ├── store.js          # Sign-in and sync: Supabase Auth, writes only changed rows, uploads files
+│   ├── vendor/jsQR.min.js # QR reader (Apache-2.0), loaded on demand
 │   └── app.js            # The app: screens, calculations, plans, goals, onboarding
 ├── supabase/schema.sql   # Tables, Row Level Security, triggers, storage bucket, v3 additions
 ├── assets/               # Icons
