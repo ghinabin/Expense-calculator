@@ -1,16 +1,29 @@
 {
-  "name": "Expense Calculator",
-  "short_name": "Expenses",
-  "description": "Track where your money goes: accounts, expenses with bills and slips, EMIs and budgets.",
-  "start_url": "./index.html",
+  "name": "Expense Tracker \u00b7 Save first",
+  "short_name": "Save first",
+  "description": "Save first. Spend what's left. Never miss an EMI.",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f5f6fa",
-  "theme_color": "#1e1b4b",
+  "theme_color": "#f5f6fa",
   "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ]
 }

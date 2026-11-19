@@ -1,94 +1,95 @@
-# Expense Calculator
+# Expense Tracker · Save first
 
-A mobile-first web app for tracking where your money goes. You record what you pay, which account it came from, and attach the bill or payment slip. You also plan EMIs and recurring bills ahead of time.
+**Save first. Spend what's left. Never miss an EMI.**
 
-It is plain HTML, CSS and JavaScript with no build step. **Supabase** provides sign-in, the Postgres database and file storage for bills and slips. If no Supabase keys are set, it falls back to a local mode where data stays in the browser.
+A mobile-first web app for people in Nepal and the Nepali diaspora (NZ, US). It shows how much is really **left to spend** after EMIs, bills and savings are kept aside, reminds you before things are due, and helps you save toward goals without pressure.
+
+Plain HTML, CSS and JavaScript, no build step. **Supabase** provides sign-in, the Postgres database and private file storage. Without Supabase keys it runs in local mode and keeps data in the browser.
 
 ## Features
 
-- **Login, registration and password reset** through Supabase Auth (email and password).
-- **Cloud data:** every account, transaction, EMI and setting is saved to Postgres, and each user can only read their own rows (Row Level Security). Log in on any phone to see the same data.
-- **Accounts:** banks, wallets (eSewa, Khalti), cash and credit cards. Each balance is calculated from its opening balance plus every transaction.
-- **Add money in or out** from one screen with four tabs: Expense, Income, Transfer, Lend/Borrow. It has a keypad, a category grid and account chips that show each balance.
-- **Bills and payment slips:** one picker for camera, gallery or PDF, up to 5 files per transaction.
-- **EMIs, rent, bills and subscriptions:** due dates, overdue status, one-tap pay, skip a month, and EMI progress.
-- **Budget:** an overall limit and per-category limits, with alerts at 80% and 100%. Paid EMIs count toward the budget.
-- **Reports:** spending by category, comparison with last month, daily spending, which account you paid from, and income by source.
-- **Lend and borrow:** "Owed to me" and "I owe" totals, with partial repayments.
-- **Settings:** light, dark or system theme; month start day (calendar month or payday); default account; CSV export.
-- **Undo:** every save, delete or change can be undone for a few seconds.
-- **Installable:** works as a home-screen app on Android and iOS through the web app manifest.
+- **Left to spend:** money in your accounts minus everything due in the next 30 days (EMIs, bills, savings), with a daily amount until your next income. Savings accounts aren't counted as spendable.
+- **Plan:** one form with a switch between **Bills & EMIs** and **Savings goal**.
+  - Bills & EMIs: EMI, rent, bill, subscription, insurance; monthly or one-time; EMI total and progress; reminders; mark paid, skip a month.
+  - Savings goals: target and date, a suggested monthly step, a savings account to keep it in. Nothing is logged automatically: you move the money, then tap "I moved it".
+- **Recurring income:** salary and rent received, with "Got it", "Other amount" or "Not yet". Income only counts once you confirm it arrived.
+- **Nepali (BS) and English (AD) calendars**, chosen per user and per plan.
+- **Accounts:** banks, wallets (eSewa, Khalti), cash, credit cards and savings accounts. Save receive-money details and a QR code, and share them in one tap.
+- **Add money in or out:** expense, income, transfer, lend/borrow, with a keypad, categories, bills and payment slips (camera, gallery or PDF).
+- **Activity:** search and filters (date range, account, category, tag, with slip), with a filtered total.
+- **Reports:** spending by category, budget, comparison with last month, income by source.
+- **Sign-in without passwords:** Google, Apple, or a 6-digit code by email. You can start without an account and back up later; your data comes with you.
+- **Onboarding:** 3-screen walkthrough, calendar choice, set up your money or explore sample data, and a getting-started checklist.
+- **Pro trial and invites** (placeholders, no payments yet): 14-day trial, free plan limited to 2 savings goals, invite link.
+- **Sign out** removes the data from this device; it stays in your account. **Delete account** removes the account, all rows and all files.
+- Light, dark or system theme. CSV export. Undo on every change. Installable as a home-screen app.
 
 ## Project structure
 
 ```
 Expense-calculator/
-├── index.html            # App shell; redirects to login when signed out
-├── login.html            # Log in, forgot password
-├── register.html         # Create account
-├── reset.html            # Set a new password from the email link
-├── css/
-│   ├── styles.css        # Design tokens (light/dark) and app components
-│   └── auth.css          # Login and registration layout
+├── index.html            # App shell
+├── css/styles.css        # Design tokens (light/dark) and components
 ├── js/
-│   ├── config.js         # Supabase URL and anon key
-│   ├── store.js          # Data + sign-in layer: Supabase sync (only changed rows) or local mode
-│   ├── auth-pages.js     # Login, register and reset forms
-│   ├── auth.js           # Local-mode accounts (used only without Supabase keys)
-│   └── app.js            # Balances, transactions, EMIs, budget, reports, settings
-├── supabase/
-│   └── schema.sql        # Tables, Row Level Security, new-user trigger, storage bucket
-├── assets/               # App icons and favicon
-├── manifest.webmanifest  # Install as an app on phones
-├── vercel.json           # Static hosting config (clean URLs)
-└── README.md
+│   ├── config.js         # Supabase URL and anon key (public by design; data is protected by RLS)
+│   ├── store.js          # Sign-in and sync: Supabase Auth, writes only changed rows, uploads files
+│   └── app.js            # The app: screens, calculations, plans, goals, onboarding
+├── supabase/schema.sql   # Tables, Row Level Security, triggers, storage bucket, v3 additions
+├── assets/               # Icons
+├── manifest.webmanifest  # Install as an app
+└── vercel.json           # Static hosting config
 ```
 
 ## Run locally
 
-Open `index.html` in a browser. Or serve the folder so it behaves like the hosted version:
-
 ```bash
-npx serve .
-# or
 python3 -m http.server 8080
+# or: npx serve .
 ```
 
-Then open the printed address on your phone (same Wi-Fi) or in Chrome's mobile view.
+Open http://localhost:8080. Use Chrome's device toolbar to see the phone layout. On a desktop screen the app shows as a centred phone-width column.
+
+Google and Apple sign-in redirect back to the page, so add `http://localhost:8080/**` to Supabase redirect URLs if you want to test them locally. The email code works without that.
 
 ## Supabase setup
 
-The project `expense-calculator` (region ap-south-1, Mumbai) is already created, with `supabase/schema.sql` applied. `js/config.js` points to it.
+Project `expense-calculator` (ap-south-1, Mumbai). `js/config.js` already points to it and the v3 schema is applied.
 
 | Table | Holds |
 | --- | --- |
-| `profiles` | Name, month start day, default account, theme, budget limits (one row per user) |
-| `accounts` | Banks, wallets, cash, cards with opening balance |
-| `transactions` | Expenses, income, transfers, lend/borrow, repayments, corrections; attachment paths |
-| `commitments` | EMIs, rent, bills, subscriptions with due day and paid dates |
-| Storage `attachments` | Bill and slip files, private, in a folder per user |
+| `profiles` | Name, theme, default account, budget, and all app settings (`settings` jsonb) |
+| `accounts` | Banks, wallets, cash, cards, savings accounts (`savings`), receive-money details |
+| `commitments` | EMIs, rent, bills, subscriptions, savings goals and monthly savings |
+| `incomes` | Recurring income: salary, rent received |
+| `transactions` | Expenses, income, transfers, lend/borrow, repayments; attachment paths |
+| Storage `attachments` | Bills, slips and QR codes, private, one folder per user |
 
-A new sign-up automatically gets a profile and a Cash account with a balance of 0, so every user starts from an empty state.
+Each row keeps the full app object in a `data` jsonb column; the other columns are for reports and queries. Every table uses Row Level Security, so users only see their own rows.
 
-To set up your own project instead, open Supabase → SQL Editor, run `supabase/schema.sql`, then paste your Project URL and anon key into `js/config.js` (Project Settings → API).
+To use your own Supabase project: SQL Editor → run `supabase/schema.sql` → paste your Project URL and anon key into `js/config.js`.
 
-**After deploying**, in Supabase go to Authentication → URL Configuration:
-- Set **Site URL** to your live address (for example `https://expense-calculator.vercel.app`).
-- Add `https://expense-calculator.vercel.app/**` to **Redirect URLs**.
+### One-time dashboard steps (needed for sign-in)
 
-Without this, confirmation and password-reset emails open the wrong address.
+1. **URL Configuration** (Authentication → URL Configuration)
+   - Site URL: your live address, for example `https://expense-calculator.vercel.app`
+   - Redirect URLs: add `https://expense-calculator.vercel.app/**` (and `http://localhost:8080/**` for local testing)
+2. **Email code** (Authentication → Email Templates → Magic Link): put the code in the email, for example:
+   ```html
+   <h2>Your sign-in code</h2>
+   <p>Enter this code in the app: <strong>{{ .Token }}</strong></p>
+   <p>It expires in 1 hour. If you didn't ask for it, ignore this email.</p>
+   ```
+   Also set the email OTP length to 6 (Authentication → Providers → Email). For real users, set up custom SMTP (Project Settings → Authentication → SMTP); the built-in sender is rate-limited.
+3. **Google** (Authentication → Providers → Google): create an OAuth client in Google Cloud Console (Web application), add `https://nkdyanuudxkwowerxecs.supabase.co/auth/v1/callback` as an authorised redirect URI, then paste the client ID and secret into Supabase.
+4. **Apple** (Authentication → Providers → Apple): needs an Apple Developer account (Services ID, key, team ID). Until it's set up, the Apple button tells users to use email.
 
-Supabase's built-in email sender is limited to a few messages per hour. For testing, you can turn off Authentication → Providers → Email → **Confirm email**. For real users, set up custom SMTP.
+## Deploy
 
-## Deploy to Vercel
+Push to GitHub, then import the repo in Vercel (framework preset: **Other**, no build command, output directory: root). Every push to `main` redeploys. Then do step 1 above with the Vercel address.
 
-1. Push this repo to GitHub.
-2. In Vercel, choose **Add New → Project** and import the repo.
-3. Set Framework Preset to **Other**. Leave the build command and output directory empty, then deploy.
+## Not built yet
 
-Or from a terminal in this folder, run `npx vercel` (then `npx vercel --prod`).
-
-## Limits of this version
-
-- Changes save about half a second after each edit. If the phone is offline, the app retries every few seconds and again when the connection returns, but changes made while offline are lost if the app is closed before it reconnects.
-- If two phones edit the same item at nearly the same moment, the last save wins.
+- Payments for Pro (the trial and goal limit work locally; price and limit are placeholders).
+- Family sharing.
+- Push or email reminders (reminders show inside the app).
+- Invite rewards tracking (the invite link shares the app address).

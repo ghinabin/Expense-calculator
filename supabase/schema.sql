@@ -118,3 +118,50 @@ create policy "own files read"   on storage.objects for select to authenticated 
 create policy "own files write"  on storage.objects for insert to authenticated with check (bucket_id = 'attachments' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy "own files update" on storage.objects for update to authenticated using (bucket_id = 'attachments' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy "own files delete" on storage.objects for delete to authenticated using (bucket_id = 'attachments' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+-- =====================================================================
+-- v3: saving-first app (goals, savings accounts, recurring income,
+-- passwordless sign-in, delete account). Safe to run more than once.
+-- Each row keeps the full app object in "data"; the other columns are
+-- there for reporting and queries.
+-- =====================================================================
+alter table public.profiles     add column if not exists settings jsonb not null default '{}'::jsonb;
+alter table public.accounts     add column if not exists savings boolean not null default false;
+alter table public.accounts     add column if not exists data jsonb not null default '{}'::jsonb;
+alter table public.commitments  add column if not exists data jsonb not null default '{}'::jsonb;
+alter table public.transactions add column if not exists data jsonb not null default '{}'::jsonb;
+
+alter table public.commitments drop constraint if exists commitments_type_check;
+alter table public.commitments add constraint commitments_type_check
+  check (type in ('EMI','Rent','Bill','Subscription','Insurance','Other','Goal','Saving'));
+alter table public.commitments drop constraint if exists commitments_due_day_check;
+alter table public.commitments alter column due_day drop not null;
+alter table public.commitments add constraint commitments_due_day_check check (due_day is null or due_day between 1 and 32);
+
+create table if not exists public.incomes (
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  id         text not null,
+  name       text not null,
+  amount     numeric(14,2) not null check (amount > 0),
+  account_id text,
+  day        smallint check (day between 1 and 32),
+  data       jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  primary key (user_id, id)
+);
+alter table public.incomes enable row level security;
+drop policy if exists "own rows" on public.incomes;
+create policy "own rows" on public.incomes for all to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+
+-- Delete my account: removes the user's files, then the user (all rows cascade).
+create or replace function public.delete_my_account()
+returns void language plpgsql security definer set search_path = '' as $$
+declare uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'Not signed in'; end if;
+  delete from storage.objects where bucket_id = 'attachments' and (storage.foldername(name))[1] = uid::text;
+  delete from auth.users where id = uid;
+end $$;
+revoke execute on function public.delete_my_account() from public, anon;
+grant execute on function public.delete_my_account() to authenticated;
