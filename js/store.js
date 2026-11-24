@@ -88,6 +88,7 @@
   function fromRow(tbl, r) { return r.data && r.data.id ? r.data : legacy[tbl](r); }
   function profRow(S) {
     var set = clone(S.set || {});
+    set.projects = clone(S.prj || []); // projects ride in settings until they get their own table
     return { user_id: uid, name: set.name || (user && user.name) || '', month_start: 1, default_account: nz(set.def),
       theme: ['light', 'dark', 'system'].indexOf(set.theme) > -1 ? set.theme : 'light',
       budget_total: Number(S.bud && S.bud.all) || 0, budget_categories: (S.bud && S.bud.cat) || {}, settings: set };
@@ -212,6 +213,7 @@
       if (p && p.name && !user.name) user.name = p.name;
       var S = { set: Object.assign({}, (p && p.settings) || {}), bud: { all: p ? num(p.budget_total) : 30000, cat: (p && p.budget_categories) || {} } };
       TABLES.forEach(function (tbl, i) { S[KEYS[tbl]] = res[i + 1].map(function (r) { return fromRow(tbl, r); }); });
+      S.prj = Array.isArray(S.set.projects) ? S.set.projects : []; delete S.set.projects;
       if (!S.set.theme && p) S.set.theme = p.theme;
       if (!S.set.def && p) S.set.def = p.default_account;
       snap = snapshot(S);
